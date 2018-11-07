@@ -13,10 +13,10 @@ Moreover, don't expect direct quotes, changing the sentences vocbulary helps me 
 
 ### Contents
 
--   [Chapter 1 - The Language of Macros](#heading)
-    -   [What are Macros?](#sub-heading)
-    -   [The Abstract Syntax Tree](#sub-heading-1)
-    -   [Trying It All Together](sub-heading-2)
+-   [Chapter 1 - The Language of Macros](#chapter-1-the-language-of-macros)
+    -   [What are Macros?](#what-are-macros)
+    -   [The Abstract Syntax Tree](#the-abstract-syntax-tree)
+    -   [Trying It All Together](#trying-it-all-together)
 
 ### Chapter 1 - The Language of Macros
 
