@@ -22,6 +22,8 @@ Moreover, don't expect direct quotes, changing the sentences vocbulary helps me 
     -   [High-Level Syntax vs. Low-level AST](#high-level-syntax-vs-low-level-ast)
     -   [AST Literals](#ast-literals)
     -   [Macros: The Building Blocks of Elixir](#macros-the-building-blocks-of-elixir)
+    -   [Macro Expansion](#macro-expansion)
+    -   [Code Injection and the Caller's Context](#code-injection-and-the-callers-context)
 
 ### Chapter 1 - The Language of Macros
 
@@ -107,9 +109,21 @@ defmodule Math do
 end
 ```
 
+Output:
+
+```elixir
+iex> Math.say 5 + 2
+5 plus 2 is 7
+7
+
+iex> iex> Math.say 18 * 4
+18 times 4 is 72
+72
+```
+
 </details>
 
-Note when you use this in iex you need to first `c "math.exs"` then `require Math` but i've included it in [.iex.exs](.iex.exs) to save time.
+Note when you use this in iex you need to first `c "math.exs"` then `require Math` but i've included it in [.iex.exs](math/.iex.exs) to save time.
 Automagically adding these when you open iex with `iex math.exs`.
 
 In this example. We take what we know from the AST representations so far from the `quote` we used. We then create `defmacro`-s. We can still
@@ -119,7 +133,7 @@ being the operator at the start of the AST, `{:+, ...}`, and use a new keyword c
 ```elixir
 iex(1)> h unquote
 
-                             defmacro unquote(expr)
+                                defmacro unquote(expr)
 
 Unquotes the given expression from inside a macro.
 
@@ -130,7 +144,7 @@ inside some quote. The first attempt would be:
 
     value = 13
     quote do
-      sum(1, value, 3)
+        sum(1, value, 3)
     end
 
 Which would then return:
@@ -192,13 +206,13 @@ iex(1)> quote do
 ...(1)>   end
 ...(1)> end
 {:defmodule, [context: Elixir, import: Kernel],
- [
-   {:__aliases__, [alias: false], [:MyModule]},
-   [
-     do: {:def, [context: Elixir, import: Kernel],
-      [{:hello, [context: Elixir], Elixir}, [do: "World"]]}
-   ]
- ]}
+    [
+    {:__aliases__, [alias: false], [:MyModule]},
+    [
+        do: {:def, [context: Elixir, import: Kernel],
+        [{:hello, [context: Elixir], Elixir}, [do: "World"]]}
+    ]
+    ]}
 ```
 
 </details>
@@ -216,11 +230,11 @@ iex(1)> quote do
 ```elixir
 iex(1)> quote do: (5 * 2) - 1 + 7
 {:+, [context: Elixir, import: Kernel],
- [
-   {:-, [context: Elixir, import: Kernel],
+    [
+    {:-, [context: Elixir, import: Kernel],
     [{:*, [context: Elixir, import: Kernel], [5, 2]}, 1]},
-   7
- ]}
+    7
+    ]}
 ```
 
 -   An AST tree strunction of functions and arguments has been made. If we were to format this output into a more readable tree:
@@ -296,21 +310,54 @@ is, while more complex tuples are returned as a quoted expression. It's useful t
 
 #### Macros: The Building Blocks of Elixir
 
--   Let's imagine that `unless` does not exist in the elixir language. `unless` is essentially the same as a negated if statement, e.g. unless(1 + 1 = 5) would return true.
+-   Let's imagine that `unless` does not exist in the elixir language. `unless` is essentially the same as a negated if statement, e.g.
+    unless(1 + 1 = 5) would return true.
 
-[Second macro](unless/unless.exs) - `unless.exs`
+[Second macro](unless/unless.exs) - `unless.exs` also [.iex.exs](unless/.iex.exs)
 
 <details>
 <summary>unless.exs</summary>
 
 ```elixir
 defmodule ControlFlow do
-  defmacro unless(expression, do: block) do
+    defmacro unless(expression, do: block) do
     quote do
-      if !unquote(expression), do: unquote(block)
+        if !unquote(expression), do: unquote(block)
     end
-  end
+    end
 end
 ```
 
+Output:
+
+```elixir
+iex> ControlFlow.unless 2 == 5, do: "block entered"
+"block entered"
+
+iex> ControlFlow.unless 5 == 5, do: "block entered"
+nil
+```
+
 </details>
+
+-   Since the macros receive the AST representation of arguments, we can accept any valid elixir expression as the first argument to `unless`.
+    In the second argument we pattern match of the `do` blockand bind uts AST value to a variable.
+
+-   We then go straigh into our `quote` block where we build upon the `if` macro and simply negate it with `!`.
+
+-   We also of course `unquote` the parameters passed to the macro.
+
+#### Macro Expansion
+
+-   When the compiler encounters a macro, it recursivley expands it until the code no loinger contains any macro calls.
+
+-   Take the code `ControlFlow.unless 2 == 5`. The compiler seeing this will ask if `unless` is a macro. If it is, expand it and see what's in that macro. In this case it goes into `unless` and finds `if !`. Is `if` a macro? Yes it is, so expand again to find `case !` is that a macro? No, expansion is now complete.
+-   `case` case macro is a member of a small set of special macros, located in `Kernel.SpecialForms`. These macros are funfamental building blocks in Elixir that cannot be overridden. They also represent the end of the road for macro expansion.
+
+#### Code Injection and the Caller's Context
+
+-   Elixir has the concept of macro _hygiene_. Hygiene means that variables, imports, and aliases that you define in a macro do not leak into the caller's own definitions.We must take special consideration with macro hygiene when expanding code, because sometimes it is necessary evil to implicitly access the caller's scope in an unhygenic way.
+-   This safeguard also happens to prevent accidental namespace clashes.
+-   This hygiene seems like a fancy version of just being in or out of scope, perhaps that's the point.
+-   You can override this hygiene by pre-pending `var!`. For example, `if var!(meaning_to_life) == 42 do ....`  
+-   When working with macros, it's important to be aware of what context a macro is executing in and to respect hygiene.
