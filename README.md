@@ -12,9 +12,10 @@ value as the notes will make sense for me as I cherry pick a sentence or an anal
 Moreover, don't expect direct quotes, changing the sentences vocbulary helps me personally.
 
 <details>
-<summary>
-    ### Chapter 1 - The language of macros 
-</summary>
+<summary>Chapter 1 - The language of Macros</summary>
+
+<details>
+<summary>What are Macros?</summary>
 
 -   Macros are code that write code.
 -   Elixir itself is made with macros, as a result you can extend the language itself
@@ -34,7 +35,10 @@ end
 "<div><h1 class=\"title\">Hello</h1><p>Metaprogramming Elixir</p></div>"
 ```
 
-#### The Abstract Syntax Tree
+</details>
+
+<details>
+<summary>The Abstract Syntax Tree</summary>
 
 -   Most languages use AST but you never need to know about them. They are used typically during compilation
     or interpretation to transform source code into a tree structure before being turned into bytecode
@@ -59,7 +63,10 @@ iex> quote do: div(10, 2)
 -   The purpose of macros is to interact with this AST with the syntax of Elixir.
 -   Macros turn you from language consumer to language creator. You have the same level of power as José when he wrote the standard library.
 
-#### Trying It All Together
+</details>
+
+<details>
+<summary>Trying It All Together</summary>
 
 "Let's write a macro that can print the spoken form of an Elixir mathematical expression, such as 5 + 2, when calculating a result.
 In most languages, we would have to parse a string expression into something digestible by our program. With Elixir, we can access
@@ -140,5 +147,7 @@ Yes that's correct because we are dealing with ASTs not the data it represents; 
 Much like interpolation from Ecto and the difference between `"Hello world"` and `"Hello #{world}`.
 
 Back to the `math.exs`example. 
+
+</details>
 
 </details>
