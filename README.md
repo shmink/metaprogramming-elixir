@@ -11,11 +11,16 @@ examples. This README will serve as my notes, therefore you shouldn't take them 
 value as the notes will make sense for me as I cherry pick a sentence or an analogy.
 Moreover, don't expect direct quotes, changing the sentences vocbulary helps me personally.
 
-<details>
-<summary>Chapter 1 - The language of Macros</summary>
+### Contents
 
-<details>
-<summary>What are Macros?</summary>
+-   [Chapter 1 - The Language of Macros](#chapter-1-the-language-of-macros)
+    -   [What are Macros?](#what-are-macros)
+    -   [The Abstract Syntax Tree](#the-abstract-syntax-tree)
+    -   [Trying It All Together](#trying-it-all-together)
+
+### Chapter 1 - The Language of Macros
+
+#### What are Macros?
 
 -   Macros are code that write code.
 -   Elixir itself is made with macros, as a result you can extend the language itself
@@ -72,36 +77,38 @@ iex> quote do: div(10, 2)
 In most languages, we would have to parse a string expression into something digestible by our program. With Elixir, we can access
 the representation of expressions directly with macros."
 
-[First macro - `math.exs`](math.exs)
+[First macro - `math.exs`](math.exs) 
 
-<!-- <details>
-    <summary> [First macro - `math.exs`](math.exs) </summary>
-    ```elixir
-        defmodule Math do
-        @moduledoc false
+<details>
+<summary>math.exs</summary>
 
-        defmacro say({:+, _, [lhs, rhs]}) do
-            quote do
-            lhs = unquote(lhs)
-            rhs = unquote(rhs)
-            result = lhs + rhs
-            IO.puts("#{lhs} plus #{rhs} is #{result}")
-            result
-            end
-        end
+```elixir
+defmodule Math do
+@moduledoc false
 
-        defmacro say({:*, _, [lhs, rhs]}) do
-            quote do
-            lhs = unquote(lhs)
-            rhs = unquote(rhs)
-            result = lhs * rhs
-            IO.puts("#{lhs} times #{rhs} is #{result}")
-            result
-            end
+    defmacro say({:+, _, [lhs, rhs]}) do
+        quote do
+        lhs = unquote(lhs)
+        rhs = unquote(rhs)
+        result = lhs + rhs
+        IO.puts("#{lhs} plus #{rhs} is #{result}")
+        result
         end
+    end
+
+    defmacro say({:*, _, [lhs, rhs]}) do
+        quote do
+        lhs = unquote(lhs)
+        rhs = unquote(rhs)
+        result = lhs * rhs
+        IO.puts("#{lhs} times #{rhs} is #{result}")
+        result
         end
-    ``` 
-</details> -->
+    end
+end
+```
+
+</details>
 
 Note when you use this in iex you need to first `c "math.exs"` then `require Math` but i've included it in [.iex.exs](.iex.exs) to save time.
 Automagically adding these when you open iex with `iex math.exs`.
@@ -147,7 +154,3 @@ Yes that's correct because we are dealing with ASTs not the data it represents; 
 Much like interpolation from Ecto and the difference between `"Hello world"` and `"Hello #{world}`.
 
 Back to the `math.exs`example. 
-
-</details>
-
-</details>
