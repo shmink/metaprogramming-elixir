@@ -40,10 +40,7 @@ end
 "<div><h1 class=\"title\">Hello</h1><p>Metaprogramming Elixir</p></div>"
 ```
 
-</details>
-
-<details>
-<summary>The Abstract Syntax Tree</summary>
+#### The Abstract Syntax Tree
 
 -   Most languages use AST but you never need to know about them. They are used typically during compilation
     or interpretation to transform source code into a tree structure before being turned into bytecode
@@ -68,10 +65,7 @@ iex> quote do: div(10, 2)
 -   The purpose of macros is to interact with this AST with the syntax of Elixir.
 -   Macros turn you from language consumer to language creator. You have the same level of power as José when he wrote the standard library.
 
-</details>
-
-<details>
-<summary>Trying It All Together</summary>
+#### Trying It All Together
 
 "Let's write a macro that can print the spoken form of an Elixir mathematical expression, such as 5 + 2, when calculating a result.
 In most languages, we would have to parse a string expression into something digestible by our program. With Elixir, we can access
