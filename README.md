@@ -12,11 +12,8 @@ value as the notes will make sense for me as I cherry pick a sentence or an anal
 Moreover, don't expect direct quotes, changing the sentences vocbulary helps me personally.
 
 <details>
-
 <summary>
-
     ### Chapter 1 - The language of macros 
-
 </summary>
 
 -   Macros are code that write code.
