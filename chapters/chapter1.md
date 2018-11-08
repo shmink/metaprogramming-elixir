@@ -334,3 +334,47 @@ nil
 -   This hygiene seems like a fancy version of just being in or out of scope, perhaps that's the point.
 -   You can override this hygiene by pre-pending `var!`. For example, `if var!(meaning_to_life) == 42 do ....`  
 -   When working with macros, it's important to be aware of what context a macro is executing in and to respect hygiene.
+
+[callers_context.exs](callers-context/callers_context.exs)
+
+<details>
+<summary>callers_context.exs</summary>
+
+```elixir
+defmodule Mod do
+  defmacro definfo do
+    IO.puts("In macro's context (#{__MODULE__}).")
+
+    quote do
+      IO.puts("In caller's context (#{__MODULE__}).")
+
+      def friendly_info do
+        IO.puts("""
+        My name is #{__MODULE__}
+        My functions are #{inspect(__info__(:functions))}
+        """)
+      end
+    end
+  end
+end
+
+defmodule MyModule do
+  require Mod
+  Mod.definfo()
+end
+```
+
+Output:
+
+```elixir
+iex(1)> c "callers_context.exs
+In macro's context (Elixir.Mod).
+In caller's context (Elixir.MyModule).
+[MyModule, Mod]
+
+iex(2)> MyModule.friendly_info
+My name is Elixir.MyModule
+My functions are [friendly_info: 0]
+
+:ok
+```
