@@ -398,3 +398,166 @@ end
 ```
 
 </details>
+
+-   The macro `__using__` in the above code with the `run/0` function there is an issue. It's defined just after registering the tests attribute.
+-   The issue is that the run function was expanded before any of the `test` macro accumulations could take place.
+-   To fix this we can use the elixir hook `before_compile`.
+
+#### Compile-Time Hooks
+
+-   Elixir allows us to set a special module attribute, `@before_compile`, to notify the compiler that an extra step is required just before compilation is finished.
+-   The `@before_compile` attribute accepts a module argument where a `__before_compile__/1` macro must be defined.
+
+[assertion.exs](assertion/assertion.exs)
+
+<details>
+<summary>assertion.exs</summary>
+
+```elixir
+defmodule Assertion do
+  defmacro __using__(_options) do
+    quote do
+      import unquote(__MODULE__)
+      Module.register_attribute(__MODULE__, :tests, accumulate: true)
+      @before_compile unquote(__MODULE__)
+    end
+  end
+
+  defmacro __before_compile__(_env) do
+    quote do
+      def run, do: Assertion.Test.run(@tests, __MODULE__)
+    end
+  end
+
+  defmacro test(description, do: test_block) do
+    test_func = String.to_atom(description)
+
+    quote do
+      @tests {unquote(test_func), unquote(description)}
+      def unquote(test_func)(), do: unquote(test_block)
+    end
+  end
+
+  defmacro assert({operator, _, [lhs, rhs]}) do
+    quote bind_quoted: [operator: operator, lhs: lhs, rhs: rhs] do
+      Assertion.Test.assert(operator, lhs, rhs)
+    end
+  end
+end
+
+defmodule Assertion.Test do
+  def run(tests, module) do
+    Enum.each(tests, fn {test_func, description} ->
+      case apply(module, test_func, []) do
+        :ok ->
+          IO.write(".")
+
+        {:fail, reason} ->
+          IO.puts("""
+
+          =============================================
+            FAILURE:  #{description}
+          =============================================
+
+            #{reason}
+          """)
+      end
+    end)
+  end
+
+  def pass do
+    [:green, :bright, "PASSED!"]
+    |> IO.ANSI.format()
+    |> IO.puts()
+  end
+
+  def fail(lhs, rhs) do
+    fail =
+      [:red, :bright, "FAILED:"]
+      |> IO.ANSI.format()
+
+    IO.puts("""
+    #{fail}
+    Expected:     #{lhs}
+    but received: #{rhs}
+    """)
+  end
+
+  # def assert(operator, lhs, rhs) do
+  #   case operator do
+  #     :== -> if lhs == rhs, do: pass(), else: fail(lhs, rhs)
+  #     :> -> if lhs > rhs, do: pass(), else: fail(lhs, rhs)
+  #     :< -> if lhs < rhs, do: pass(), else: fail(lhs, rhs)
+  #   end
+  # end
+
+  def assert(:==, lhs, rhs) when lhs == rhs do
+    :ok
+  end
+
+  def assert(:==, lhs, rhs) do
+    {:fail,
+     """
+     Expected:       #{lhs}
+     to be equal to: #{rhs}
+     """}
+  end
+
+  def assert(:>, lhs, rhs) when lhs > rhs do
+    :ok
+  end
+
+  def assert(:>, lhs, rhs) do
+    {:fail,
+     """
+         Expected:           #{lhs}
+         to be greater than: #{rhs}
+     """}
+  end
+end
+
+defmodule MathTest do
+  use Assertion
+
+  test "integers can be added and subtracted" do
+    assert 1 + 1 == 2
+    assert 2 + 3 == 5
+    assert 5 - 5 == 10
+  end
+
+  test "ints can be multiplied and divided" do
+    assert 5 * 5 == 25
+    assert 10 / 2 == 5
+    assert 50 / 2 == 40
+  end
+end
+```
+
+Output:
+
+```elixir
+iex(1)> MathTest.run
+
+=============================================
+FAILURE:  ints can be multiplied and divided
+=============================================
+
+Expected:       25.0
+to be equal to: 40
+
+
+
+=============================================
+FAILURE:  integers can be added and subtracted
+=============================================
+
+Expected:       0
+to be equal to: 10
+
+
+:ok
+```
+
+</details>
+
+Up to this point we have created a mini testing framework, complete with its own pattern matching definitions, testing DSL, and compile-time hooks for more advanced code generation. The macro expansions are concise and we delegated to outside functions where possible to keep our code easy to reason about.
