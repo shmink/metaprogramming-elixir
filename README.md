@@ -4,6 +4,8 @@
 
 _Write less code, get more done (and have fun!)_ :purple_heart:
 
+[![codebeat badge](https://codebeat.co/badges/69f4818d-55a7-41bf-b642-4350f5885ab4)](https://codebeat.co/projects/github-com-shmink-metaprogramming-elixir-master) 
+
 ### Abstract
 
 Reading this book to learn about how macros work and following some of the relevant
